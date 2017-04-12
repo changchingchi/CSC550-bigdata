@@ -1,0 +1,45 @@
+def parse_show_title(line):
+    line = line.strip().split(",")  # strip out carriage return
+    key_in = line[0]  # key is first item in list
+    value_in = line[1]  # value is 2nd item
+    return (key_in,value_in)
+
+def parse_show_counts(line):
+    line = line.strip().split(",")  # strip out carriage return
+    key_in = line[0]  # key is first item in list
+    value_in = int(line[1])  # value is 2nd item
+    return (key_in,value_in)
+
+def parse_channel_counts(line):
+    #(u'Baked_Talking', (u'MAN', 307))
+    #(u'MAN', 307)
+    key_in = line[1][0]
+    value_in = line[1][1]
+    return (key_in,value_in)
+
+titles_raw = sc.textFile('input/join2_genchan?.txt')
+titles = titles_raw.map(parse_show_title)
+
+counts_raw = sc.textFile('input/join2_gennum?.txt')
+counts = counts_raw.map(parse_show_counts)
+
+"""
+(u'Almost_News', u'DEF'), (u'Dumb_Talking', u'XYZ'), (u'PostModern_Show', u'CAB'), (u'Baked_Talking', u'MAN'), (u'Loud_Games', u'BAT')
+"""
+#titles.collect()
+
+"""
+(u'Almost_Show', 247), (u'Dumb_News', 378), (u'PostModern_Cooking', 641), (u'Baked_Talking', 132), (u'Loud_Talking', 151)
+"""
+#counts.collect()
+
+"""
+(u'Baked_Talking', (u'MAN', 307)), (u'Baked_Talking', (u'MAN', 420)), (u'Baked_Talking', (u'MAN', 384))
+"""
+joined_dataset = titles.join(counts)
+
+filteredByChannel_dataset = joined_dataset.map(parse_channel_counts)
+
+countsByChannel = filteredByChannel_dataset.reduceByKey(lambda a,b: a + b)
+
+countsByChannel.collect()
